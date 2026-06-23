@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>step-3.7-flash · 会写、会看、够快 · Workshop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<style>
+  :root{
+    --ink:#0E1B2A; --ink-2:#16293D; --paper:#FBFAF7; --paper-2:#F1EDE4;
+    --teal:#13A89A; --teal-deep:#0C7C72; --teal-soft:rgba(19,168,154,.13);
+    --coral:#EF915B; --coral-deep:#D9733B; --coral-soft:rgba(239,145,91,.15);
+    --muted:#5C6B79; --muted-d:#93A6B6; --line:rgba(14,27,42,.12);
+    --serif:"Fraunces","Noto Serif SC",Georgia,serif;
+    --sans:"Noto Sans SC",system-ui,-apple-system,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:var(--sans);background:#05101b;color:var(--ink);overflow:hidden}
+
+  .deck{position:fixed;inset:0}
+  .slide{position:absolute;inset:0;display:none;padding:4.6vmin 6.4vmin;
+    flex-direction:column;justify-content:center;opacity:0;transition:opacity .45s ease}
+  .slide.on{display:flex;opacity:1}
+  .slide.dark{background:radial-gradient(130% 90% at 70% -10%,#173653 0%,var(--ink) 58%);color:var(--paper)}
+  .slide.light{background:var(--paper);color:var(--ink)}
+
+  .eyebrow{font-size:1.6vmin;font-weight:700;letter-spacing:.32em;text-transform:uppercase;color:var(--teal);margin-bottom:1.8vmin}
+  .slide.light .eyebrow{color:var(--teal-deep)}
+  .eyebrow.live::after{content:" · LIVE";color:var(--coral);font-weight:700}
+  h1{font-family:var(--serif);font-weight:600;font-size:6.6vmin;line-height:1.08;letter-spacing:.2px}
+  h2{font-family:var(--serif);font-weight:600;font-size:4.2vmin;line-height:1.14}
+  .lead{font-size:2.1vmin;line-height:1.6;color:var(--muted-d);max-width:54ch;margin-top:1.8vmin}
+  .slide.light .lead{color:var(--muted)}
+  .big{font-family:var(--serif);font-weight:700;font-size:11vmin;line-height:1;letter-spacing:-1px}
+
+  .eye{width:7.4vmin;height:7.4vmin;border-radius:50%;display:grid;place-items:center;
+    background:radial-gradient(circle,var(--teal) 0 30%,transparent 31%),
+              conic-gradient(from 210deg,var(--teal-deep),var(--teal) 50%,var(--teal-deep));
+    box-shadow:0 0 0 1vmin var(--teal-soft);}
+  .eye::after{content:"";width:2vmin;height:2vmin;border-radius:50%;background:var(--ink);transition:transform .5s ease}
+  .slide.on .eye::after{animation:look 6s ease-in-out infinite}
+  @keyframes look{0%,100%{transform:translate(0,0)}25%{transform:translate(1vmin,-.4vmin)}60%{transform:translate(-1vmin,.5vmin)}}
+
+  .hero-tags{display:flex;flex-wrap:wrap;gap:.9vmin;margin-top:2.6vmin}
+  .hero-tags span{font-size:1.7vmin;font-weight:700;padding:.8vmin 1.8vmin;border-radius:999px;
+    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);color:#CFE5E1}
+
+  /* spec strip */
+  .specs{display:grid;grid-template-columns:repeat(5,1fr);gap:1.4vmin;margin-top:2.8vmin;border-top:1px solid var(--line);padding-top:2.2vmin}
+  .spec{display:flex;flex-direction:column;gap:.3vmin}
+  .spec b{font-family:var(--serif);font-weight:700;font-size:2.4vmin;color:var(--coral-deep);line-height:1}
+  .spec span{font-size:1.4vmin;color:var(--muted);line-height:1.35}
+  .slide.dark .specs{border-color:rgba(255,255,255,.12)}
+  .slide.dark .spec b{color:var(--coral)}
+  .slide.dark .spec span{color:var(--muted-d)}
+
+  /* three overview cards */
+  .three{display:grid;grid-template-columns:repeat(3,1fr);gap:2vmin;margin-top:3vmin}
+  .reason{background:rgba(255,255,255,.5);border:1px solid var(--line);border-radius:1.4vmin;padding:2.2vmin}
+  .slide.dark .reason{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)}
+  .reason .ic{width:5.4vmin;height:5.4vmin;border-radius:1.2vmin;display:grid;place-items:center;font-size:2.8vmin;background:var(--teal-soft);margin-bottom:1.2vmin}
+  .slide.dark .reason .ic{background:rgba(19,168,154,.18)}
+  .reason h3{font-size:2.2vmin;font-weight:700;margin:.4vmin 0 .6vmin}
+  .reason p{font-size:1.7vmin;color:var(--muted);line-height:1.55}
+  .slide.dark .reason p{color:var(--muted-d)}
+
+  /* pillar intro */
+  .pillar{display:grid;grid-template-columns:1fr 1fr;gap:4.4vmin;align-items:start;margin-top:1.6vmin}
+  .pillar .chips{display:flex;gap:.7vmin;flex-wrap:wrap;margin-top:2vmin}
+  .pillar .chips span{font-size:1.55vmin;font-weight:600;padding:.7vmin 1.4vmin;border-radius:999px;background:var(--coral-soft);color:var(--coral-deep)}
+  .pillar .bullets{margin-top:2.2vmin;list-style:none}
+  .pillar .bullets li{font-size:1.7vmin;line-height:1.55;color:var(--muted);padding:.5vmin 0 .5vmin 2.4vmin;position:relative}
+  .pillar .bullets li::before{content:"→";position:absolute;left:0;top:.5vmin;color:var(--teal-deep);font-weight:700}
+  .code-demo{display:flex;flex-direction:column;gap:1.2vmin}
+  .prompt-bubble{background:#fff;border:1.5px solid var(--coral);border-radius:1.2vmin;padding:1.6vmin 2vmin;
+    font-size:1.75vmin;line-height:1.5;color:var(--ink);box-shadow:0 8px 22px rgba(217,115,59,.16)}
+  .prompt-bubble small{display:block;color:var(--coral-deep);font-weight:700;font-size:1.2vmin;letter-spacing:.12em;margin-bottom:.5vmin;text-transform:uppercase}
+  .arrow{font-size:1.6vmin;color:var(--teal-deep);text-align:center;font-weight:700;margin:.1vmin 0}
+  .mini-cap{font-size:1.35vmin;font-weight:700;color:var(--teal-deep);letter-spacing:.06em;margin-bottom:.4vmin}
+
+  /* iframe scale wrapper */
+  .frame-box{width:100%;aspect-ratio:1366/854;border-radius:1.2vmin;overflow:hidden;border:1px solid var(--line);box-shadow:0 12px 32px rgba(0,0,0,.14);background:#fff;position:relative}
+  .frame-box iframe{border:0;display:block;width:1366px;height:854px;transform-origin:0 0;transform:scale(.5)}
+  .frame-box.big{border-radius:1.6vmin;box-shadow:0 22px 60px rgba(0,0,0,.4)}
+  .live-tag{position:absolute;top:1.4vmin;left:1.4vmin;z-index:5;background:var(--coral);color:#fff;font-size:1.3vmin;font-weight:700;letter-spacing:.18em;padding:.5vmin 1.2vmin;border-radius:.6vmin;text-transform:uppercase;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+  .live-tag::before{content:"●";margin-right:.5vmin;animation:pulse 1.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+
+  /* 4 cards */
+  .grid4{display:grid;grid-template-columns:1fr 1fr;gap:1.8vmin;margin-top:2.4vmin}
+  .cap{background:#fff;border:1px solid var(--line);border-radius:1.4vmin;padding:2.2vmin}
+  .cap .ico{width:4.6vmin;height:4.6vmin;border-radius:1vmin;display:grid;place-items:center;font-size:2.4vmin;background:var(--teal-soft);margin-bottom:1vmin}
+  .cap h3{font-size:2vmin;font-weight:700;margin-bottom:.5vmin}
+  .cap .what{font-size:1.65vmin;color:var(--muted);line-height:1.5;margin-bottom:.9vmin}
+  .cap .more{font-size:1.55vmin;color:var(--ink);line-height:1.5}
+  .cap .more b{color:var(--teal-deep)}
+
+  /* 6 cards cookbook */
+  .grid6{display:grid;grid-template-columns:repeat(3,1fr);gap:1.6vmin;margin-top:2.6vmin}
+  .uc{background:#fff;border:1px solid var(--line);border-radius:1.2vmin;padding:2vmin}
+  .uc .row{display:flex;align-items:center;gap:1vmin;margin-bottom:.8vmin}
+  .uc .ic{width:4vmin;height:4vmin;border-radius:.9vmin;display:grid;place-items:center;font-size:2.2vmin;background:var(--coral-soft);color:var(--coral-deep);flex-shrink:0}
+  .uc h3{font-size:1.85vmin;font-weight:700;line-height:1.15}
+  .uc .desc{font-size:1.5vmin;color:var(--muted);line-height:1.5;margin-bottom:.7vmin}
+  .uc .out{font-size:1.4vmin;color:var(--teal-deep);font-weight:600;line-height:1.45}
+
+  /* speed + tiers */
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:2vmin;margin-top:2.4vmin;max-width:84ch;margin-left:auto;margin-right:auto;width:100%}
+  .ccard{border:1.5px solid rgba(255,255,255,.16);border-radius:1.4vmin;padding:2.2vmin;text-align:center;background:rgba(255,255,255,.04)}
+  .ccard.win{border-color:var(--teal);background:rgba(19,168,154,.10)}
+  .ccard .mode{font-size:1.85vmin;font-weight:700;color:#CFE5E1;margin-bottom:.6vmin}
+  .ccard .speed{font-family:var(--serif);font-size:5vmin;font-weight:700;line-height:1;margin:.9vmin 0}
+  .ccard .speed.slow{color:var(--coral)} .ccard .speed.fast{color:var(--teal)}
+  .ccard .sub{font-size:1.5vmin;color:var(--muted-d)}
+  .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4vmin;margin-top:2.4vmin;max-width:96ch;margin-left:auto;margin-right:auto;width:100%}
+  .tier{border:1px solid rgba(255,255,255,.14);border-radius:1.2vmin;padding:1.8vmin;background:rgba(255,255,255,.04)}
+  .tier .badge{font-family:var(--mono);font-size:1.8vmin;font-weight:700;color:var(--coral);margin-bottom:.4vmin;letter-spacing:.04em}
+  .tier .tier-name{font-size:1.5vmin;font-weight:700;color:#CFE5E1;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.6vmin}
+  .tier .tier-use{font-size:1.55vmin;color:var(--muted-d);line-height:1.5}
+
+  /* showcase 4 cards */
+  .show4{display:grid;grid-template-columns:repeat(2,1fr);gap:1.8vmin;margin-top:2.4vmin}
+  .show{background:#fff;border:1px solid var(--line);border-radius:1.4vmin;padding:2vmin;display:flex;gap:1.6vmin;align-items:flex-start}
+  .show .badge{font-family:var(--serif);font-weight:700;font-size:2.8vmin;color:var(--coral);min-width:3.4vmin;line-height:1}
+  .show h3{font-size:1.95vmin;font-weight:700;margin-bottom:.5vmin}
+  .show .desc{font-size:1.55vmin;color:var(--muted);line-height:1.5;margin-bottom:.7vmin}
+  .show .out{font-size:1.35vmin;color:var(--teal-deep);font-weight:600;text-transform:uppercase;letter-spacing:.08em}
+
+  /* live demo layout (iframe + side panel) */
+  .live-row{display:grid;grid-template-columns:1.55fr 1fr;gap:2.4vmin;margin-top:1.8vmin;align-items:stretch}
+  .live-row.flipped{grid-template-columns:1fr 1.55fr}
+
+  /* launchpad — opens target in a new tab (iframe wouldn't carry auth) */
+  .launchpad{display:flex;flex-direction:column;justify-content:center;align-items:stretch;
+    background:linear-gradient(135deg,#0f253b 0%,#1a3450 60%,#13A89A 200%);
+    border:1px solid rgba(255,255,255,.14);border-radius:1.6vmin;padding:5vmin 4vmin;
+    box-shadow:0 22px 60px rgba(0,0,0,.4);position:relative;overflow:hidden;min-height:46vmin}
+  .launchpad::before{content:"";position:absolute;inset:0;
+    background:radial-gradient(60% 50% at 80% 20%,rgba(19,168,154,.22),transparent 70%);pointer-events:none}
+  .launchpad .lp-brand{font-family:var(--serif);font-size:2vmin;font-weight:700;color:#CFE5E1;letter-spacing:.18em;text-transform:uppercase;margin-bottom:1.2vmin;position:relative}
+  .launchpad .lp-title{font-family:var(--serif);font-size:4.4vmin;font-weight:700;color:#fff;line-height:1.1;margin-bottom:1.2vmin;position:relative}
+  .launchpad .lp-tagline{font-size:1.85vmin;color:var(--muted-d);line-height:1.5;margin-bottom:3vmin;position:relative;max-width:42ch}
+  .launchpad .lp-btn{display:inline-flex;align-items:center;justify-content:center;gap:1vmin;
+    background:var(--coral);color:#fff;text-decoration:none;font-weight:700;font-size:2.4vmin;
+    padding:2vmin 3.4vmin;border-radius:1vmin;letter-spacing:.04em;box-shadow:0 10px 28px rgba(217,115,59,.45);
+    transition:transform .15s ease,box-shadow .15s ease;width:fit-content;position:relative;cursor:pointer}
+  .launchpad .lp-btn:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(217,115,59,.6)}
+  .launchpad .lp-btn .arr{font-size:2vmin}
+  .launchpad .lp-meta{display:flex;align-items:center;gap:2vmin;margin-top:2.6vmin;position:relative;flex-wrap:wrap}
+  .launchpad .lp-meta .lp-url{font-family:var(--mono);font-size:1.55vmin;color:#CFE5E1;background:rgba(255,255,255,.08);padding:.7vmin 1.2vmin;border-radius:.6vmin;border:1px solid rgba(255,255,255,.14)}
+  .launchpad .lp-meta .lp-hint{font-size:1.4vmin;color:var(--muted-d);letter-spacing:.04em}
+  .side{display:flex;flex-direction:column;gap:1.2vmin;padding-top:.4vmin}
+  .side .side-title{font-family:var(--serif);font-size:2vmin;font-weight:700;color:#fff;margin-bottom:.4vmin}
+  .side .side-sub{font-size:1.5vmin;color:var(--muted-d);line-height:1.5;margin-bottom:.6vmin}
+  .side .promptlist{display:grid;gap:.9vmin}
+  .pchip{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);border-radius:.8vmin;padding:1.2vmin 1.4vmin;font-size:1.55vmin;color:#E4EEF0;line-height:1.45}
+  .pchip b{color:var(--teal);font-weight:700;display:block;font-size:1.35vmin;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.35vmin}
+  .side .steps{display:grid;gap:.7vmin;margin-top:1vmin}
+  .step{display:flex;gap:1vmin;align-items:baseline;font-size:1.55vmin;color:var(--muted-d);line-height:1.5}
+  .step .num{font-family:var(--mono);color:var(--teal);font-weight:700;min-width:1.4vmin}
+
+  /* gallery demo */
+  .demo-row{display:grid;grid-template-columns:1.5fr 1fr;gap:2.4vmin;margin-top:2vmin;align-items:start}
+  .qrbox{text-align:center;padding-top:.6vmin}
+  .qrbox #qr{width:22vmin;height:22vmin;margin:0 auto 1.6vmin;background:#fff;border-radius:1.2vmin;padding:1.2vmin;display:grid;place-items:center}
+  .qrbox #qr img,.qrbox #qr canvas{width:100%!important;height:100%!important}
+  .qr-url{font-size:1.4vmin;color:var(--muted-d);word-break:break-all;line-height:1.5}
+  .qr-hint{font-size:1.3vmin;color:var(--muted-d);margin-top:.9vmin;letter-spacing:.05em}
+  .qr-points{margin-top:1.8vmin;text-align:left;display:grid;gap:.7vmin}
+  .qr-points li{list-style:none;font-size:1.45vmin;color:var(--muted-d);line-height:1.5;padding-left:1.6vmin;position:relative}
+  .qr-points li::before{content:"·";position:absolute;left:.4vmin;top:-.2vmin;color:var(--teal);font-weight:900;font-size:2vmin}
+  .qr-points b{color:#CFE5E1;font-weight:700}
+
+
+  /* agent ecosystem */
+  .eco{display:grid;grid-template-columns:repeat(4,1fr);gap:1.4vmin;margin-top:2.4vmin}
+  .eco-group{background:#fff;border:1px solid var(--line);border-radius:1.2vmin;padding:1.8vmin}
+  .eco-group h4{font-size:1.55vmin;font-weight:700;color:var(--teal-deep);letter-spacing:.08em;text-transform:uppercase;margin-bottom:1vmin}
+  .eco-group ul{list-style:none;display:grid;gap:.6vmin}
+  .eco-group li{font-size:1.65vmin;color:var(--ink);font-weight:600;padding-left:1.6vmin;position:relative;line-height:1.4}
+  .eco-group li::before{content:"›";position:absolute;left:0;top:0;color:var(--coral);font-weight:700}
+  .eco-group .sub{font-size:1.35vmin;color:var(--muted);font-weight:400;display:block;margin-top:.15vmin}
+
+  /* code blocks */
+  .codepair{display:grid;grid-template-columns:1fr 1fr;gap:2vmin;margin-top:2.4vmin}
+  .codeblock{background:#0c1a28;border:1px solid rgba(255,255,255,.12);border-radius:1.2vmin;padding:1.8vmin;font-family:var(--mono);font-size:1.5vmin;line-height:1.6;color:#D6E2E8;overflow:auto}
+  .codeblock .ctitle{font-family:var(--sans);font-size:1.4vmin;font-weight:700;color:var(--teal);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1vmin;display:block}
+  .codeblock .com{color:#7E94A8}
+  .codeblock .key{color:#F1B97B}
+  .codeblock .str{color:#9DD9CE}
+  .codeblock .fn{color:#7BC4F1}
+
+  /* idea wall */
+  .ideas{display:grid;grid-template-columns:repeat(3,1fr);gap:1.6vmin;margin-top:2.6vmin}
+  .idea{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:1.4vmin;padding:2vmin;font-size:1.75vmin;line-height:1.55;color:#E4EEF0}
+  .idea b{display:block;font-family:var(--serif);font-weight:600;font-size:2.1vmin;color:var(--teal);margin-bottom:.7vmin}
+
+  /* takeaway */
+  .take{display:grid;gap:1.2vmin;margin-top:2.4vmin;max-width:64ch}
+  .take li{list-style:none;display:flex;gap:1.6vmin;align-items:baseline;font-size:2vmin;line-height:1.5}
+  .take li .k{font-family:var(--serif);font-weight:700;color:var(--coral);font-size:2.2vmin;min-width:2.6ch}
+  .res{margin-top:3vmin;font-size:1.7vmin;color:var(--muted);line-height:1.9}
+  .res b{color:var(--coral-deep);font-weight:700}
+
+  /* 三个二维码 strip */
+  .qr-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:2.6vmin;margin-top:3.2vmin;padding-top:2.6vmin;border-top:1px solid var(--line)}
+  .qr-strip.qr-strip-4{grid-template-columns:repeat(4,1fr);gap:2vmin;margin-top:2.4vmin;padding-top:2vmin}
+  .qr-cell{text-align:center;display:flex;flex-direction:column;align-items:center}
+  .qr-cell .qrimg{width:18vmin;height:18vmin;background:#fff;border-radius:1.2vmin;padding:1.2vmin;display:grid;place-items:center;border:1px solid var(--line);margin-bottom:1.2vmin}
+  .qr-strip.qr-strip-4 .qr-cell .qrimg{width:15.5vmin;height:15.5vmin;padding:1vmin}
+  .qr-cell .qrimg img,.qr-cell .qrimg canvas{width:100%!important;height:100%!important;object-fit:contain}
+  .qr-cell .qrtitle{font-family:var(--serif);font-weight:700;font-size:2vmin;color:var(--ink);margin-bottom:.3vmin}
+  .qr-strip.qr-strip-4 .qr-cell .qrtitle{font-size:1.75vmin}
+  .qr-cell .qrtag{font-size:1.45vmin;color:var(--coral-deep);font-weight:600;margin-bottom:.5vmin}
+  .qr-strip.qr-strip-4 .qr-cell .qrtag{font-size:1.3vmin}
+  .qr-cell .qrurl{font-family:var(--mono);font-size:1.2vmin;color:var(--muted);word-break:break-all;line-height:1.35;max-width:32ch}
+  .qr-strip.qr-strip-4 .qr-cell .qrurl{font-size:1.1vmin}
+
+  /* video player for capability demo */
+  .video-row{display:grid;grid-template-columns:1.55fr 1fr;gap:3vmin;margin-top:2.4vmin;align-items:center}
+  .video-frame{border-radius:1.6vmin;overflow:hidden;border:1px solid var(--line);box-shadow:0 22px 60px rgba(0,0,0,.2);background:#000;aspect-ratio:16/9;position:relative}
+  .video-frame video{width:100%;height:100%;display:block;object-fit:contain;background:#000}
+  .video-side{padding-top:.4vmin}
+  .video-side .lead{margin-top:0;max-width:none;font-size:2.05vmin;line-height:1.55;color:var(--ink)}
+  .video-side .lead b{color:var(--coral-deep)}
+  .video-side .vbullets{margin-top:2vmin;list-style:none;display:grid;gap:.9vmin}
+  .video-side .vbullets li{font-size:1.65vmin;line-height:1.55;color:var(--muted);padding-left:2.2vmin;position:relative}
+  .video-side .vbullets li::before{content:"→";position:absolute;left:0;top:0;color:var(--teal-deep);font-weight:700}
+  .video-side .vbullets li b{color:var(--teal-deep);font-weight:700}
+  .video-side .vtag{margin-top:2vmin;font-size:1.35vmin;color:var(--muted);letter-spacing:.04em;padding:.6vmin 1vmin;background:var(--teal-soft);border-radius:.5vmin;display:inline-block;color:var(--teal-deep);font-weight:600}
+
+  /* reward banner for 现场互动 page */
+  .reward-banner{margin-top:3vmin;display:grid;grid-template-columns:auto 1fr auto;gap:2.4vmin;align-items:center;
+    background:linear-gradient(135deg,var(--coral) 0%,var(--coral-deep) 100%);
+    border-radius:1.4vmin;padding:2.2vmin 3vmin;box-shadow:0 14px 36px rgba(217,115,59,.4)}
+  .reward-banner .rb-medal{font-size:5.4vmin;line-height:1;filter:drop-shadow(0 4px 10px rgba(0,0,0,.2))}
+  .reward-banner .rb-text{color:#fff}
+  .reward-banner .rb-title{font-family:var(--serif);font-weight:700;font-size:2.8vmin;line-height:1.15;margin-bottom:.4vmin}
+  .reward-banner .rb-sub{font-size:1.7vmin;line-height:1.45;opacity:.9}
+  .reward-banner .rb-url{font-family:var(--mono);font-size:1.5vmin;color:#fff;background:rgba(0,0,0,.18);padding:.9vmin 1.4vmin;border-radius:.6vmin;letter-spacing:.02em}
+  .starter-label{margin-top:2.4vmin;font-family:var(--serif);font-size:2vmin;font-weight:600;color:var(--teal);letter-spacing:.02em}
+
+  .bar{position:fixed;top:0;left:0;height:.5vmin;background:linear-gradient(90deg,var(--teal),var(--coral));z-index:50;transition:width .35s ease}
+  .counter{position:fixed;bottom:2.2vmin;right:2.8vmin;font-size:1.4vmin;font-weight:600;z-index:50;color:var(--muted);letter-spacing:.05em}
+  .counter.dark{color:var(--muted-d)}
+  .nav{position:fixed;bottom:2vmin;left:2.8vmin;z-index:50;display:flex;gap:1vmin}
+  .nav button{width:3.8vmin;height:3.8vmin;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.7);cursor:pointer;font-size:1.7vmin;color:var(--ink);display:grid;place-items:center;backdrop-filter:blur(6px)}
+  .nav button:hover{border-color:var(--teal)}
+  .helphint{position:fixed;bottom:2.4vmin;left:50%;transform:translateX(-50%);z-index:50;font-size:1.2vmin;color:var(--muted);opacity:.7}
+  .counter.dark ~ .helphint{color:var(--muted-d)}
+
+  .notes{position:fixed;left:0;right:0;bottom:0;max-height:38vh;overflow:auto;z-index:60;background:rgba(8,16,26,.97);color:#D6E2E8;padding:2.6vmin 5vmin;display:none;border-top:2px solid var(--teal);font-size:1.85vmin;line-height:1.7}
+  .notes.show{display:block}
+  .notes b{color:var(--teal)}
+  .notes .tag{font-size:1.3vmin;color:var(--muted-d);text-transform:uppercase;letter-spacing:.2em;display:block;margin-bottom:.8vmin}
+
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:opacity .2s!important}}
+  @media (max-width:760px){.grid4,.three,.compare,.ideas,.demo-row,.pillar,.grid6,.tiers,.specs,.show4,.eco,.codepair,.live-row,.live-row.flipped,.qr-strip,.video-row,.reward-banner{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="bar" id="bar"></div>
+<div class="deck" id="deck">
+
+  <!-- 1 · HERO -->
+  <section class="slide dark on"
+    data-note="开场（约2分钟）。今天的主角只有一个：<b>step-3.7-flash</b>。一句话立住它：『又快又全能——它能帮你写网页、读图片、做 Agent，每次响应只要两三秒。』 这三件事就是今天 90 分钟的主线。先报幕，再一个个看 —— 中间我们会现场跑两次 Studio：让它生成一个 HTML、让它读一张图。">
+    <div class="eye" style="margin-bottom:2.6vmin"></div>
+    <div class="eyebrow">STEPFUN · 今天的主角 · 90 分钟</div>
+    <h1>step-3.7-flash<br>会写 · 会看 · 够快</h1>
+    <p class="lead">一个模型把活儿全包：前端代码它写、图它读得懂、Agent 它扛得动，每次响应只要两三秒。今天我们一个个见识，中间两次现场跑给你看。</p>
+    <div class="hero-tags"><span>会写前端</span><span>会看图</span><span>够快</span><span>跑 Agent</span><span>原生多模态</span></div>
+  </section>
+
+  <!-- 2 · 三个本事 + 技术规格 -->
+  <section class="slide light"
+    data-note="总览（约4分钟）。摊地图：三个本事一个个拆。然后底下这条<b>规格条要敲黑板</b>：256K 上下文够大、198B 总参 / 11B 激活的稀疏 MoE 架构（大模型容量、小模型速度）、原生支持文+图+视频、三档推理强度可调、OpenAI 和 Anthropic 两套 API 都能直接接。规格不是装饰——这些数字撑起了上面三个本事，也是接下来一小时半都要回扣的『为什么它能做到』。">
+    <div class="eyebrow">认识今天的主角</div>
+    <h2>step-3.7-flash 有三个本事</h2>
+    <div class="three">
+      <div class="reason"><div class="ic">⌨️</div><h3>会写前端</h3><p>大白话描述一个网页或功能，它把能直接跑的代码写出来。</p></div>
+      <div class="reason"><div class="ic">👁️</div><h3>会看图</h3><p>给它一张图 / 一段视频，它读得懂主题、情绪、结构、文字。</p></div>
+      <div class="reason"><div class="ic">⚡</div><h3>够快 & 能调度</h3><p>简单任务两三秒就回，工具调用 / Agent 链路扛得稳。</p></div>
+    </div>
+    <div class="specs">
+      <div class="spec"><b>256K</b><span>上下文长度，长文档 / 多图都装得下</span></div>
+      <div class="spec"><b>198B / 11B</b><span>稀疏 MoE：总参 198B、单次激活 11B</span></div>
+      <div class="spec"><b>文 · 图 · 视频</b><span>原生多模态，单轮可混合输入</span></div>
+      <div class="spec"><b>3 档</b><span>推理强度可调：low / medium / high</span></div>
+      <div class="spec"><b>OpenAI · Anthropic</b><span>双 API 兼容，Claude Code 直接接</span></div>
+    </div>
+  </section>
+
+  <!-- 3 · 本事一：会写前端 -->
+  <section class="slide light"
+    data-note="本事一 · 会写前端（约6分钟）。核心台词：<b>你不用学编程，你只要会描述。</b> 右边这个 iframe 跑的是一个完整的作品展示网站——前端从布局、组件、交互到样式，整套是它根据描述生成的。再敲一下 cookbook 里写明的能力：<b>截图 → React + Tailwind 代码</b>。通过 Anthropic 兼容 API，可以直接接进 Claude Code / Cline 这类 coding 工具——你写 prompt，它出 PR。下页我们就在现场跑一次 Studio 的『生成 HTML』给大家看。">
+    <div class="eyebrow">本事一 · 会写前端</div>
+    <h2>你描述，它写代码</h2>
+    <div class="pillar">
+      <div>
+        <p class="lead" style="color:var(--muted);max-width:none">你不用学编程。把需求讲清楚，它就把能直接跑的代码交给你——布局、交互、样式，都能交给它。</p>
+        <ul class="bullets">
+          <li>看着 UI 截图，能还原成 React + Tailwind 组件</li>
+          <li>能先描述页面结构、再分两步生成代码，少漏元素</li>
+          <li>通过 Anthropic 兼容 API 直接接进 Claude Code / Cline</li>
+          <li>不确定的图标 / 品牌素材会留占位，不瞎编</li>
+        </ul>
+        <div class="chips"><span>截图 → 代码</span><span>页面布局</span><span>交互逻辑</span><span>样式调整</span><span>响应式</span></div>
+      </div>
+      <div class="code-demo">
+        <div class="prompt-bubble"><small>比如你现在有一个需求</small>「做一个艺术家作品展示站，首页要有横向滚动的精选作品和 4 步引导。」</div>
+        <div class="arrow">↓ 它写出了 ↓</div>
+        <div class="mini-cap">右边这个站，整套前端就是它写的</div>
+        <div class="frame-box" data-fit-frame><iframe src="https://zgh332358.github.io/houniao-300-gallery/" title="step-3.7-flash 写出来的网站"></iframe></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · LIVE · Studio 现场生成网页 -->
+  <section class="slide dark"
+    data-note="LIVE · 现场生成网页（约12分钟）。<b>这是今天第一个现场跑的环节。</b> 点左边按钮在新标签打开 Studio，输一个『生成需求』让它实时把单页 HTML 写出来。建议的 prompt 在右边——三选一开跑，或者让观众喊一个主题。重点话术：<b>它不是写代码片段、不是写 React 组件、它直接给你一个能跑的单页 HTML</b>——含数据、含布局、含样式。生成时全程别动，让观众看着 token 一行行出。生成完点开看效果。演示完按 ⌘+Tab（或 Alt+Tab）切回这页继续。">
+    <div class="eyebrow live">现场跑 · 让它写一个完整 HTML</div>
+    <h2 style="font-size:3.4vmin">在右边 Studio 里输一句，看它把单页 HTML 写出来</h2>
+    <div class="live-row">
+      <div class="launchpad">
+        <div class="lp-brand">StepFun · Studio</div>
+        <div class="lp-title">生成 · 网页 · 报告</div>
+        <div class="lp-tagline">在 Studio 输入一句需求，让它实时把单页 HTML 写出来——含数据、含布局、含样式。</div>
+        <a href="https://studio.stepfun.com/" target="_blank" rel="noopener" class="lp-btn">▶ 在新标签打开 Studio <span class="arr">↗</span></a>
+        <div class="lp-meta">
+          <span class="lp-url">studio.stepfun.com</span>
+          <span class="lp-hint">演示完 ⌘+Tab 切回这页</span>
+        </div>
+      </div>
+      <div class="side">
+        <div class="side-title">下面的活他都能干</div>
+        <div class="promptlist">
+          <div class="pchip"><b>财报型</b>做一份『Tesla Q3 2024 财报深度分析』单页，含 GAAP / Non-GAAP 表、业务分部、管理层展望。</div>
+          <div class="pchip"><b>仪表盘型</b>做一份『全球咖啡价格 12 月走势』Dashboard，含折线图、Top 5 产区表、要点摘要。</div>
+          <div class="pchip"><b>说明书型</b>做一份『家用咖啡机选购指南』单页，含选型矩阵、价格区间、常见坑。</div>
+        </div>
+        <div class="steps">
+          <div class="step"><span class="num">①</span><span>左边输框粘一个 prompt，发送</span></div>
+          <div class="step"><span class="num">②</span><span>看它流式输出 HTML（约 30~60 秒）</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · Studio 官方 showcase -->
+  <section class="slide light"
+    data-note="Studio Showcase（约4分钟）。把官方 showcase 里的四个 case 摆出来——这都是 Studio 现成跑出来的真东西，证明上一页不是 demo 而已：<b>财报、行业战报、患者教育手册、深度财务分析</b>，全是单页 HTML，全是一个 prompt 出来的。每个念两句即可，重点在『品类够宽』——只要能讲清要什么，它就能写出能看的页面。">
+    <div class="eyebrow">Studio 官方 showcase · 现成的真东西</div>
+    <h2>在 AI Studio，你还可以让他动手干</h2>
+    <div class="show4">
+      <div class="show">
+        <div class="badge">01</div>
+        <div><h3>全球 AI 融资季报 · Series A 雷达</h3><div class="desc">虚构 VC 平台『Quartz Capital Insights』，跟踪全球 AI Series A 资金流向。</div><div class="out">→ 单页 HTML Dashboard</div></div>
+      </div>
+      <div class="show">
+        <div class="badge">02</div>
+        <div><h3>中国新能源车 Q1 战报</h3><div class="desc">虚构智库『乘势观察 Trend Lab』出品，Q1 中国新能源车市场分析。</div><div class="out">→ 单页 HTML 战报</div></div>
+      </div>
+      <div class="show">
+        <div class="badge">03</div>
+        <div><h3>ALS 家属手册 · 与时间共处</h3><div class="desc">渐冻症家属全周期照护指南，虚构机构『明岩医患同行』出品。</div><div class="out">→ 单页 HTML 患教站</div></div>
+      </div>
+      <div class="show">
+        <div class="badge">04</div>
+        <div><h3>NVIDIA Q1 FY25 财报深度分析</h3><div class="desc">含 GAAP / Non-GAAP 表格、业务分部、管理层展望、英文摘要。</div><div class="out">→ 结构化财务报告</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · 本事二：会看图 引入 + 视频 -->
+  <section class="slide light"
+    data-note="本事二 · 会看图 · 引入（约5分钟）。<b>视频会自动播</b>——你看到的是 step-3.7-flash 在直接读一张票据图。重点话术：<b>不是 OCR 拼接结果、不是先识别再后处理，是模型一次性看图就抽出结构化字段。</b> 商家、日期、金额、明细、税额——一次写齐，又快又准。视频默认静音，需要原声讲解时点视频上的喇叭打开。讲完顺势引出下一页『同样的能力放到创作者场景里能玩出什么』。">
+    <div class="eyebrow">本事二 · 会看图</div>
+    <h2>给它一张图，它可以快准狠地抓住图片的细节</h2>
+    <div class="video-row">
+      <div class="video-frame">
+        <video src="./Receipts-final-1.mp4" controls autoplay muted playsinline preload="metadata" data-autoplay></video>
+      </div>
+      <div class="video-side">
+        <p class="lead">你看到的不是 OCR 拼接结果——是 <b>step-3.7-flash 一次看图就把结构抽出来</b>。</p>
+        <ul class="vbullets">
+          <li><b>没有前置识别</b>，没有规则模板，模型直接读像素</li>
+          <li><b>一次问全</b>：商家、日期、币种、税额、明细、总额</li>
+          <li><b>不确定的字段</b>带 confidence + 证据位，方便人工复核</li>
+          <li>同一个模型同时干这件事 + 看作品图 + 看 UI 截图</li>
+        </ul>
+        <div class="vtag">视频默认静音 · 点喇叭开声音</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · 创作场景 4 卡 -->
+  <section class="slide light"
+    data-note="创作场景（约5分钟）。四张卡，全部铺开。最值得敲黑板的一句：<b>一次就把所有信息问全</b>——字段之间还能互相照应（标签会跟描述呼应）。后三张说明：它读得出抽象的情绪色调、能按一句话挑图、写得不满意能直接让它改。这页讲的是<b>创作者场景</b>，下页讲<b>更宽的官方多模态场景</b>。">
+    <div class="eyebrow">创作场景 · 看懂之后能玩出什么</div>
+    <h2>看图这一招，能做的事</h2>
+    <div class="grid4">
+      <div class="cap">
+        <div class="ico">🖼️</div><h3>一次写全</h3>
+        <div class="what">标题、中英描述、多维标签，一次请求全给齐。</div>
+        <div class="more">聪明点在于：<b>问一次，拿全部</b>。不是分七次问，字段之间还能互相照应。</div>
+      </div>
+      <div class="cap">
+        <div class="ico">🎨</div><h3>读得出情绪色调</h3>
+        <div class="what">不只认出物体，还能说出『宁静』『暖色调』『梦境感』。</div>
+        <div class="more">它理解的是<b>画面的氛围</b>，不只是内容清单——写介绍时最难、最值钱的部分。</div>
+      </div>
+      <div class="cap">
+        <div class="ico">🔍</div><h3>按一句话挑图</h3>
+        <div class="what">给它一堆图和一句『想看会让人想哭的人像』，它排出最贴的。</div>
+        <div class="more">它读得懂语义，<b>只回最相关的几张</b>，剩下交给页面去展示，小巧可靠。</div>
+      </div>
+      <div class="cap">
+        <div class="ico">💬</div><h3>不满意能改</h3>
+        <div class="what">觉得它写的标题不好，直接说一句『再含蓄点』，它重写。</div>
+        <div class="more">它记得上下文，<b>只改自己那一版</b>，你来回调几句就能调到满意，像在跟一个编辑对话。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 · 本事三：够快 + 推理三档 -->
+  <section class="slide dark" style="text-align:center"
+    data-note="本事三 · 够快 + 推理强度（约5分钟）。先摆数据：同一张图，让它『慢慢想』8~15 秒，让它『直接答』2~4 秒。台词：<b>简单任务让它别多想</b>——速度差 3~5 倍，质量肉眼看不出差别。然后讲三档推理：API 里 reasoning_effort 一个字段切换：low 给简单问答 / 摘要 / 抽取；medium 是默认；high 给复杂推理 / 数学 / 代码分析。<b>你按任务难度选档，不是一刀切让它都『深思』。</b>这就是 flash 这个名字的意义。">
+    <div class="eyebrow">本事三 · 够快 · 还能调档</div>
+    <h2>同一张图，两种心态，差多少？</h2>
+    <div class="compare">
+      <div class="ccard"><div class="mode">🐢 让它慢慢想</div><div class="speed slow">8~15 秒</div><div class="sub">先想一大通再回答</div></div>
+      <div class="ccard win"><div class="mode">⚡ 让它直接答</div><div class="speed fast">2~4 秒</div><div class="sub">简单任务，质量看不出差别</div></div>
+    </div>
+    <div class="tiers">
+      <div class="tier"><div class="badge">reasoning_effort: low</div><div class="tier-name">直接答</div><div class="tier-use">简单问答 · 摘要 · 改写 · 信息抽取</div></div>
+      <div class="tier"><div class="badge">reasoning_effort: medium</div><div class="tier-name">默认</div><div class="tier-use">一般推理 · 多步骤任务（推荐起步档位）</div></div>
+      <div class="tier"><div class="badge">reasoning_effort: high</div><div class="tier-name">深思</div><div class="tier-use">复杂推理 · 数学 · 规划 · 代码分析</div></div>
+    </div>
+  </section>
+
+  <!-- 9 · Agent / 工具调用生态 -->
+  <section class="slide light"
+    data-note="Agent 生态（约5分钟）。step-3.7-flash 不是孤立的模型——它能<b>可靠地调工具、跑多步任务</b>。官方文档列出了一长串集成：编程类（Claude Code / Cline / Roo Code / OpenClaw / Kilo Code / Open Code / Zed）、桌面 AI 客户端（Cherry Studio / Goose）、移动端 Agent（GELab-Zero Android 真机操作）、StepFun 自己的 Hermes Agent。<b>核心台词</b>：你不用从头写 Agent 框架，已经有这么多生态适配好了，挑一个就能用。最有意思的是 <b>GELab-Zero——它能用截图驱动 Android 真机做事</b>。">
+    <div class="eyebrow">本事四 · 工具调用 + Agent 生态</div>
+    <h2>它接谁都行 —— 已经适配的一串</h2>
+    <div class="eco">
+      <div class="eco-group">
+        <h4>编程 / Coding</h4>
+        <ul>
+          <li>Claude Code<span class="sub">Anthropic SDK 直接接</span></li>
+          <li>Cline / Roo Code<span class="sub">VS Code 内的 AI Coder</span></li>
+          <li>OpenClaw<span class="sub">开源 Coding Agent</span></li>
+          <li>Kilo Code · Open Code · Zed</li>
+        </ul>
+      </div>
+      <div class="eco-group">
+        <h4>桌面 AI 客户端</h4>
+        <ul>
+          <li>Cherry Studio<span class="sub">国产多模型客户端</span></li>
+          <li>Goose<span class="sub">Block 出品的 Agent</span></li>
+        </ul>
+      </div>
+      <div class="eco-group">
+        <h4>移动端 Agent</h4>
+        <ul>
+          <li>GELab-Zero<span class="sub">Android 真机操作 · 截图驱动规划</span></li>
+        </ul>
+      </div>
+      <div class="eco-group">
+        <h4>StepFun 自有</h4>
+        <ul>
+          <li>Hermes Agent<span class="sub">官方 Agent 框架</span></li>
+          <li>Step Plan<span class="sub">/step_plan/v1 路由接口</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 · 三件事合起来 -->
+  <section class="slide light"
+    data-note="合起来（约2分钟）。把三个本事收成一句：<b>它能帮你把页面写出来、能读懂页面里的图、还快。</b> 下一页就是这个真实在跑的网站——前端是它写的、每张图的介绍是它看出来的、每次响应两三秒。">
+    <div class="eyebrow">三件事合起来</div>
+    <h2>一个模型，把活儿全包了</h2>
+    <p class="lead">下一页就是把三件事凑到一起的真实网站——前端、看图、速度，全是同一个模型。</p>
+    <div class="three" style="margin-top:2.6vmin">
+      <div class="reason"><div class="ic">⌨️</div><h3>页面它写</h3><p>布局、组件、交互的前端代码，是它根据描述生成的。</p></div>
+      <div class="reason"><div class="ic">👁️</div><h3>介绍它读</h3><p>每张作品的标题、描述、标签，是它看图写出来的。</p></div>
+      <div class="reason"><div class="ic">⚡</div><h3>速度它扛</h3><p>读一张图两三秒，整站用起来很顺。</p></div>
+    </div>
+  </section>
+
+  <!-- 11 · 真实站点 demo -->
+  <section class="slide dark"
+    data-note="现场看一眼（约6分钟）。左边是真实在跑的网站——你当场翻几页给大家看：精选作品、艺术家页、搜索。每张图的标题/描述/标签都是 step-3.7-flash 看图写的。右边是同一个网址的二维码 + 三条看点。要看自己手机上跑的同学，扫一下就行。">
+    <div class="eyebrow">现场看一眼 · 它做出来的东西</div>
+    <h2 style="font-size:3.6vmin">这是 step-3.7-flash 写的、看的、扛速度的网站</h2>
+    <div class="demo-row">
+      <div class="frame-box big" data-fit-frame><iframe src="https://zgh332358.github.io/houniao-300-gallery/" title="step-3.7-flash 写出来的真实网站"></iframe></div>
+      <div class="qrbox">
+        <div id="qr"></div>
+        <div class="qr-url" id="qrurl">zgh332358.github.io<br>/houniao-300-gallery/</div>
+        <div class="qr-hint">扫码用手机打开</div>
+        <ul class="qr-points">
+          <li><b>页面</b>是它根据描述生成的前端</li>
+          <li><b>每张图</b>的标题 / 描述 / 标签都是它看出来的</li>
+          <li><b>响应</b>两三秒，整站可点可滚</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 · 现场互动 · 你来 Build -->
+  <section class="slide dark"
+    data-note="现场互动（约25~30分钟）。<b>这是今天最重要的一页 —— 把模型从 talk 变成 hands-on。</b> 给观众 25 分钟，打开 AI Studio 自己跑一个想法。建议你（演讲者）：① 给两三个起步 prompt 启发不知道做什么的人；② 提示『不用做完，跑出个雏形就值钱』；③ 时间到，请最有意思的 3 个上台 demo，每人 2 分钟；④ <b>领周边</b>——这是今天最大的鼓励，确认下周边数量和发放方式。结束自然过渡到下一页收尾。">
+    <div class="eyebrow">现场互动 · 唯一的动手时刻</div>
+    <h1 style="font-size:6.4vmin">现在轮到你 <br><span style="color:var(--teal)">用 AI Studio 把灵感 Build 出来</span></h1>
+    <p class="lead" style="font-size:2.1vmin;max-width:64ch">欢迎大家通过 AI Studio 在现场 Build 出自己的灵感。任何想法都可以——一个小工具、一个 dashboard、一份送给朋友的礼物页。模型已经准备好，只缺你的需求。</p>
+
+    <div class="starter-label">没思路？从下面这几个起头偷一个 →</div>
+    <div class="ideas" style="margin-top:1.2vmin">
+      <div class="idea">「做一份给我爸妈的『防诈骗速查卡』单页，含五种最常见骗局 + 对应反应」</div>
+      <div class="idea">「做一个 30 岁前必看电影榜单单页，按类型分类，能筛选」</div>
+      <div class="idea">「做一个 30 天攒钱挑战 dashboard，每日输金额自动累加」</div>
+    </div>
+
+    <div class="reward-banner">
+      <div class="rb-medal">🎁</div>
+      <div class="rb-text">
+        <div class="rb-title">上台分享，可领取精美周边</div>
+        <div class="rb-sub">挑你最得意的那一个，2 分钟讲清楚『是什么 · 怎么让它生成的』</div>
+      </div>
+      <div class="rb-url">studio.stepfun.com/playground</div>
+    </div>
+  </section>
+
+  <!-- 13 · 收尾 + 四个二维码 -->
+  <section class="slide light"
+    data-note="收尾（约3~5分钟）。回到主角：今天你认识了 step-3.7-flash 的三个本事，看到了它在一个真实网站上同时跑通，还亲手在 AI Studio 上 Build 了自己的灵感。<b>结束前四个二维码让观众扫</b>：① AI Studio Playground——动手最快的入口；② 阶跃 AI——日常对话；③ 现场 Demo——真实在跑的网站；<b>④ 开发者社群——想接 API、想反馈、想要第一手路线图的，进群直接和团队聊。</b> 给观众充足时间扫码，提一句『欢迎进群，咱们继续聊』，自然结束。">
+    <div class="eyebrow">一页带走 · 四个二维码</div>
+    <h2>记住它的三个本事，扫码留个联系</h2>
+    <ul class="take">
+      <li><span class="k">写</span><span>你描述，它写出能跑的前端代码。截图也能直接还原。</span></li>
+      <li><span class="k">看</span><span>给它一张图 / 一段视频，它一次写全你要的结构化结果。</span></li>
+      <li><span class="k">快</span><span>三档推理可调，简单任务 2~4 秒，体验顺到感觉不到等待。</span></li>
+    </ul>
+    <div class="qr-strip qr-strip-4">
+      <div class="qr-cell">
+        <div class="qrimg" data-qr="https://studio.stepfun.com/playground"></div>
+        <div class="qrtitle">AI Studio · Playground</div>
+        <div class="qrtag">现场动手跑模型</div>
+        <div class="qrurl">studio.stepfun.com/playground</div>
+      </div>
+      <div class="qr-cell">
+        <div class="qrimg" data-qr="https://chat.stepfun.com/"></div>
+        <div class="qrtitle">阶跃 AI</div>
+        <div class="qrtag">日常对话 · 微信式入口</div>
+        <div class="qrurl">chat.stepfun.com</div>
+      </div>
+      <div class="qr-cell">
+        <div class="qrimg" data-qr="https://zgh332358.github.io/houniao-300-gallery/"></div>
+        <div class="qrtitle">现场 Demo</div>
+        <div class="qrtag">step-3.7-flash 写的网站</div>
+        <div class="qrurl">zgh332358.github.io/houniao-300-gallery</div>
+      </div>
+      <div class="qr-cell">
+        <div class="qrimg"><img src="./weixinqun.png" alt="开发者社群微信群"></div>
+        <div class="qrtitle">开发者社群</div>
+        <div class="qrtag">想接 API · 想反馈 · 想看路线图</div>
+        <div class="qrurl">扫码进微信群</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="counter" id="counter">01 / 13</div>
+<div class="nav"><button id="prev" aria-label="上一页">‹</button><button id="next" aria-label="下一页">›</button></div>
+<div class="helphint">← → 翻页 · 按 N 看提词 · F 全屏</div>
+
+<div class="notes" id="notes"><span class="tag" id="notes-tag">演讲提词</span><div id="notes-body"></div></div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  let i=0;
+  const bar=document.getElementById('bar'),counter=document.getElementById('counter');
+  const notes=document.getElementById('notes'),notesBody=document.getElementById('notes-body'),notesTag=document.getElementById('notes-tag');
+  const pad=n=>String(n).padStart(2,'0');
+  function render(){
+    slides.forEach((s,k)=>s.classList.toggle('on',k===i));
+    bar.style.width=((i+1)/slides.length*100)+'%';
+    counter.textContent=pad(i+1)+' / '+pad(slides.length);
+    counter.classList.toggle('dark',slides[i].classList.contains('dark'));
+    notesBody.innerHTML=slides[i].dataset.note||'（这页无提词）';
+    notesTag.textContent='演讲提词 · 第 '+(i+1)+' 页';
+    requestAnimationFrame(fitFrames);
+    manageVideos();
+  }
+  function manageVideos(){
+    document.querySelectorAll('video[data-autoplay]').forEach(v=>{
+      const active=v.closest('.slide').classList.contains('on');
+      if(active){
+        try{v.currentTime=0;}catch(_){}
+        const p=v.play(); if(p&&p.catch) p.catch(()=>{});
+      } else {
+        v.pause();
+      }
+    });
+  }
+  function go(n){i=Math.max(0,Math.min(slides.length-1,n));render()}
+  window.go=go;
+  document.getElementById('next').onclick=()=>go(i+1);
+  document.getElementById('prev').onclick=()=>go(i-1);
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();go(i+1)}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(i-1)}
+    else if(e.key.toLowerCase()==='n'){notes.classList.toggle('show')}
+    else if(e.key.toLowerCase()==='f'){if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.();}
+    else if(e.key==='Home')go(0); else if(e.key==='End')go(slides.length-1);
+  });
+  let x0=null;
+  document.addEventListener('touchstart',e=>x0=e.touches[0].clientX,{passive:true});
+  document.addEventListener('touchend',e=>{if(x0===null)return;const dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>50)go(i+(dx<0?1:-1));x0=null;},{passive:true});
+
+  // iframe 等比缩放：宽高已在 CSS 锁定为 1366×854 + aspect-ratio
+  // JS 只算 transform scale，不再写 box.style.height，避免初次进入时的布局跳动
+  const DESIGN_W=1366;
+  function fitFrames(){
+    document.querySelectorAll('[data-fit-frame]').forEach(box=>{
+      const iframe=box.querySelector('iframe');
+      if(!iframe) return;
+      const w=box.clientWidth;
+      if(!w) return;
+      iframe.style.transform='scale('+(w/DESIGN_W)+')';
+    });
+  }
+  window.addEventListener('resize',fitFrames);
+  // iframe 加载完后再补一次，处理首次进入仍然偏的极端情况
+  document.querySelectorAll('[data-fit-frame] iframe').forEach(ifr=>{
+    ifr.addEventListener('load',()=>requestAnimationFrame(fitFrames));
+  });
+
+  // QR：所有 [data-qr] 自动生成；旧的 #qr 也兼容
+  const DEMO_URL='https://zgh332358.github.io/houniao-300-gallery/';
+  function renderQR(el,url,size){
+    el.innerHTML='';
+    if(window.QRCode){new QRCode(el,{text:url,width:size||240,height:size||240,colorDark:'#0E1B2A',colorLight:'#ffffff'});}
+    else{el.innerHTML='<div style="color:#0E1B2A;font-size:1.4vmin;padding:1vmin">二维码组件没加载，<br>直接念下面的网址即可</div>';}
+  }
+  function makeAllQRs(){
+    const legacy=document.getElementById('qr');
+    if(legacy && !legacy.dataset.qr) renderQR(legacy, DEMO_URL, 240);
+    document.querySelectorAll('[data-qr]').forEach(el=>renderQR(el, el.dataset.qr, 220));
+  }
+  makeAllQRs();
+  render();
+  setTimeout(fitFrames,150);
+</script>
+</body>
+</html>
